@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Présentation KazoSync - Automatisation Intelligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            padding: 2rem; /* Réduit pour accommoder le diagramme */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 1150px;
+            width: 100%;
+        }
+
+        .accent-blue { color: #38bdf8; }
+        .accent-green { color: #4ade80; }
+        .accent-red { color: #f87171; }
+        .accent-orange { color: #fb923c; }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background-color: #0ea5e9;
+            transition: width 0.3s ease;
+        }
+
+        code {
+            background: #1e293b;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            color: #38bdf8;
+        }
+
+        /* Styles spécifiques au Workflow */
+        .step-node {
+            position: relative;
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .step-node:not(:last-child)::after {
+            content: "\f061";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: -0.75rem;
+            top: 1.75rem;
+            color: #334155;
+            font-size: 0.8rem;
+        }
+
+        .badge {
+            font-size: 0.55rem;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 4px;
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-human { background-color: #fb923c; color: #000; box-shadow: 0 0 10px rgba(251, 146, 60, 0.3); }
+        .badge-ia { background-color: #a855f7; color: #fff; box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
+        .badge-action { background-color: #0ea5e9; color: #fff; box-shadow: 0 0 10px rgba(14, 165, 233, 0.3); }
+        
+        .icon-box {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-size: 1.25rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="progress" class="progress-bar" style="width: 0%"></div>
+
+    <div class="fixed bottom-8 right-8 flex gap-4 z-50">
+        <button onclick="prevSlide()" class="w-12 h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 rounded-full transition-all border border-slate-700 text-white">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button onclick="nextSlide()" class="w-12 h-12 flex items-center justify-center bg-sky-600 hover:bg-sky-500 rounded-full transition-all shadow-lg text-white">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <main id="presentation">
+        
+        <!-- Slide 1: Introduction (V1) -->
+        <section class="slide active">
+            <div class="glass-card">
+                <div class="mb-6 flex justify-center">
+                    <div class="p-4 bg-sky-500/20 rounded-2xl border border-sky-500/30">
+                        <i class="fas fa-sync-alt text-5xl text-sky-400"></i>
+                    </div>
+                </div>
+                <h1 class="text-6xl font-extrabold mb-4 tracking-tight">KazoSync</h1>
+                <p class="text-2xl text-slate-400 mb-8 font-light">L'intelligence artificielle au service du workflow de développement</p>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full"></div>
+                <p class="mt-8 text-slate-500 uppercase tracking-widest text-sm">Synchronisation ADO ⟷ GitHub</p>
+            </div>
+        </section>
+
+        <!-- Slide 2: Le Problème (V1) -->
+        <section class="slide">
+            <div class="glass-card text-left">
+                <h2 class="text-4xl font-bold mb-10 border-b border-slate-700 pb-4 flex items-center">
+                    <i class="fas fa-exclamation-triangle accent-red mr-4"></i> Le Problème Actuel
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="p-6 bg-red-500/5 border border-red-500/10 rounded-xl">
+                        <h3 class="text-xl font-semibold mb-2 accent-red">Silos de données</h3>
+                        <p class="text-slate-400">La gestion de projet est dans Azure DevOps, mais le code et l'IA sont dans GitHub.</p>
+                    </div>
+                    <div class="p-6 bg-red-500/5 border border-red-500/10 rounded-xl">
+                        <h3 class="text-xl font-semibold mb-2 accent-red">Perte de temps</h3>
+                        <p class="text-slate-400">Copier-coller manuel des descriptions et des consignes entre les plateformes.</p>
+                    </div>
+                    <div class="p-6 bg-red-500/5 border border-red-500/10 rounded-xl">
+                        <h3 class="text-xl font-semibold mb-2 accent-red">Traçabilité fragile</h3>
+                        <p class="text-slate-400">Difficulté à lier un commit ou une Pull Request à une tâche spécifique.</p>
+                    </div>
+                    <div class="p-6 bg-red-500/5 border border-red-500/10 rounded-xl">
+                        <h3 class="text-xl font-semibold mb-2 accent-red">IA hors-contexte</h3>
+                        <p class="text-slate-400">Les agents d'IA (Copilot) n'ont pas accès aux détails de la User Story parente.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: La Gouvernance (Last Version) -->
+        <section class="slide">
+            <div class="glass-card">
+                <h2 class="text-4xl font-bold mb-10 text-orange-400">Sécurité & Gouvernance</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                    <div class="p-6 bg-slate-800/50 border border-slate-700 rounded-xl">
+                        <div class="text-orange-400 text-2xl mb-4"><i class="fas fa-user-check"></i></div>
+                        <h3 class="font-bold mb-2">Validation Humaine</h3>
+                        <p class="text-slate-400 text-sm">Rien ne commence et rien ne finit sans l'approbation d'un développeur.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/50 border border-slate-700 rounded-xl">
+                        <div class="text-purple-400 text-2xl mb-4"><i class="fas fa-robot"></i></div>
+                        <h3 class="font-bold mb-2">Exécution Assistée</h3>
+                        <p class="text-slate-400 text-sm">L'IA s'occupe du code répétitif et de la revue préliminaire.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/50 border border-slate-700 rounded-xl">
+                        <div class="text-sky-400 text-2xl mb-4"><i class="fas fa-cogs"></i></div>
+                        <h3 class="font-bold mb-2">Automatisation</h3>
+                        <p class="text-slate-400 text-sm">GitHub Actions orchestre les transferts et la traçabilité sans erreur.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Cycle de vie supervisé (Diagramme complet) -->
+        <section class="slide">
+            <div class="glass-card">
+                <h2 class="text-3xl font-bold mb-10 border-b border-slate-700 pb-4">Cycle de vie supervisé</h2>
+                <div class="flex flex-col gap-12">
+                    
+                    <!-- Ligne 1 -->
+                    <div class="flex justify-between items-start">
+                        <div class="step-node">
+                            <span class="badge badge-human">HUMAIN</span>
+                            <div class="icon-box bg-blue-600"><i class="fas fa-tag text-white"></i></div>
+                            <p class="text-[11px] font-bold text-blue-400 uppercase">1. Qualification</p>
+                            <p class="text-[10px] text-slate-500">Ajout tag AI-Ready</p>
+                        </div>
+                        <div class="step-node">
+                            <span class="badge badge-action">GITHUB ACTION</span>
+                            <div class="icon-box bg-sky-500"><i class="fas fa-bolt text-white"></i></div>
+                            <p class="text-[11px] font-bold text-sky-400 uppercase">2. KazoSync</p>
+                            <p class="text-[10px] text-slate-500">Sync ADO ⟷ Issue</p>
+                        </div>
+                        <div class="step-node">
+                            <span class="badge badge-human">HUMAIN</span>
+                            <div class="icon-box bg-slate-700"><i class="fas fa-eye text-white"></i></div>
+                            <p class="text-[11px] font-bold text-slate-300 uppercase">3. Revue Scope</p>
+                            <p class="text-[10px] text-slate-500">Verif & Launch Agent</p>
+                        </div>
+                        <div class="step-node">
+                            <span class="badge badge-ia">IA (GITHUB AGENT)</span>
+                            <div class="icon-box bg-purple-600"><i class="fas fa-keyboard text-white"></i></div>
+                            <p class="text-[11px] font-bold text-purple-400 uppercase">4. Développement</p>
+                            <p class="text-[10px] text-slate-500">Écriture du code</p>
+                        </div>
+                    </div>
+
+                    <!-- Connecteur -->
+                    <div class="flex justify-end pr-10 -my-8">
+                        <div class="h-10 w-px bg-slate-700"></div>
+                    </div>
+
+                    <!-- Ligne 2 -->
+                    <div class="flex flex-row-reverse justify-between items-start">
+                        <div class="step-node">
+                            <span class="badge badge-action">GITHUB ACTION</span>
+                            <div class="icon-box bg-green-600"><i class="fas fa-check-circle text-white"></i></div>
+                            <p class="text-[11px] font-bold text-green-400 uppercase">8. ADO Résolu</p>
+                            <p class="text-[10px] text-slate-500">Auto-clôture WI</p>
+                        </div>
+                        <div class="step-node">
+                            <span class="badge badge-human">HUMAIN</span>
+                            <div class="icon-box bg-emerald-500"><i class="fas fa-file-signature text-white"></i></div>
+                            <p class="text-[11px] font-bold text-emerald-400 uppercase">7. Validation</p>
+                            <p class="text-[10px] text-slate-500">Merge PR & QA</p>
+                        </div>
+                        <div class="step-node">
+                            <span class="badge badge-action">GITHUB ACTION</span>
+                            <div class="icon-box bg-orange-500"><i class="fas fa-code-pull-request text-white"></i></div>
+                            <p class="text-[11px] font-bold text-orange-400 uppercase">6. Pull Request</p>
+                            <p class="text-[10px] text-slate-500">Ouverture de la PR</p>
+                        </div>
+                        <div class="step-node">
+                            <span class="badge badge-ia">IA (GITHUB AGENT)</span>
+                            <div class="icon-box bg-indigo-500"><i class="fas fa-microscope text-white"></i></div>
+                            <p class="text-[11px] font-bold text-indigo-400 uppercase">5. Code Review</p>
+                            <p class="text-[10px] text-slate-500">Auto-revue & Fixes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Le rôle du Développeur (Last Version) -->
+        <section class="slide">
+            <div class="glass-card text-left">
+                <h2 class="text-3xl font-bold mb-8 flex items-center"><i class="fas fa-user-shield mr-4 text-orange-400"></i>Le rôle du Développeur</h2>
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4 p-4 bg-slate-800/30 rounded-lg">
+                        <div class="w-10 h-10 rounded bg-orange-400/20 flex items-center justify-center text-orange-400 flex-shrink-0"><i class="fas fa-search"></i></div>
+                        <div>
+                            <h4 class="font-bold">Contrôle avant exécution</h4>
+                            <p class="text-sm text-slate-400">Le développeur vérifie que l'issue générée contient le bon scope. L'agent ne peut pas démarrer sans une interaction humaine sur GitHub.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 bg-slate-800/30 rounded-lg">
+                        <div class="w-10 h-10 rounded bg-orange-400/20 flex items-center justify-center text-orange-400 flex-shrink-0"><i class="fas fa-tasks"></i></div>
+                        <div>
+                            <h4 class="font-bold">Contrôle après Pull Request</h4>
+                            <p class="text-sm text-slate-400">Une fois la PR créée (après l'auto-revue de l'IA), le développeur effectue la revue finale. Il peut demander des ajustements à l'IA via des commentaires.</p>
+                        </div>
+                    </div>
+                    <div class="text-center pt-4 italic text-slate-500">
+                        "La technologie accélère le code, l'humain garantit la valeur métier."
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Traçabilité (V1) -->
+        <section class="slide">
+            <div class="glass-card">
+                <h2 class="text-4xl font-bold mb-8">Traçabilité Totale</h2>
+                <p class="text-xl text-slate-400 mb-10">Liaison bi-directionnelle via le standard <code>AB#ID</code></p>
+                <div class="bg-slate-950 p-8 rounded-xl border border-slate-800 text-left font-mono">
+                    <div class="text-sky-400"># Convention de nommage forcée</div>
+                    <div class="mt-2"><span class="text-green-400">Branch:</span> fix/AB#1234-auth-fix</div>
+                    <div class="mt-2"><span class="text-green-400">Commit:</span> AB#1234: Update user validation</div>
+                    <div class="mt-2"><span class="text-green-400">PR:</span> [AB#1234] Merging security updates</div>
+                </div>
+                <div class="mt-10 flex justify-center gap-12">
+                    <div class="text-center">
+                        <i class="fab fa-github text-4xl mb-2"></i>
+                        <p class="text-xs uppercase text-slate-500 font-bold">GitHub Code</p>
+                    </div>
+                    <div class="flex items-center text-sky-500">
+                        <i class="fas fa-arrows-alt-h text-2xl"></i>
+                    </div>
+                    <div class="text-center">
+                        <i class="fab fa-microsoft text-4xl mb-2"></i>
+                        <p class="text-xs uppercase text-slate-500 font-bold">ADO WorkItem</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: Pourquoi maintenant ? (V1) -->
+        <section class="slide">
+            <div class="glass-card">
+                <h2 class="text-4xl font-bold mb-12">Pourquoi maintenant ?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="p-8 bg-sky-500/10 rounded-2xl border border-sky-500/20">
+                        <div class="text-4xl font-bold text-sky-400 mb-2">0$</div>
+                        <p class="text-sm text-slate-400 uppercase font-bold">Coût d'infrastructure</p>
+                    </div>
+                    <div class="p-8 bg-sky-500/10 rounded-2xl border border-sky-500/20">
+                        <div class="text-4xl font-bold text-sky-400 mb-2">+40%</div>
+                        <p class="text-sm text-slate-400 uppercase font-bold">Vitesse de mise en route</p>
+                    </div>
+                    <div class="p-8 bg-sky-500/10 rounded-2xl border border-sky-500/20">
+                        <div class="text-4xl font-bold text-sky-400 mb-2">100%</div>
+                        <p class="text-sm text-slate-400 uppercase font-bold">Auto-hébergé & Sécure</p>
+                    </div>
+                </div>
+                <div class="mt-12 text-slate-300 text-lg">
+                    "Une solution de développeur, pour les développeurs, utilisant nos outils existants."
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progress = document.getElementById('progress');
+
+        function updateUI() {
+            slides.forEach((s, i) => {
+                s.classList.remove('active');
+                if (i === currentSlide) s.classList.add('active');
+            });
+            const percent = ((currentSlide + 1) / slides.length) * 100;
+            progress.style.width = percent + '%';
+        }
+
+        function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; updateUI(); } }
+        function prevSlide() { if (currentSlide > 0) { currentSlide--; updateUI(); } }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        updateUI();
+    </script>
+</body>
+</html>
