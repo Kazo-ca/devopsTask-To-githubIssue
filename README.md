@@ -3,7 +3,7 @@
 Outil d'automatisation qui synchronise les **WorkItems** (Type: Task) d'Azure DevOps vers des **Issues** GitHub, avec traçabilité complète via les tags `AB#`.
 
 🌐 **Configurateur web** : [https://kazo-ca.github.io/devopsTask-To-githubIssue/](https://kazo-ca.github.io/devopsTask-To-githubIssue/)
-
+**Presentation** : [https://kazo-ca.github.io/devopsTask-To-githubIssue/presentation.html](https://kazo-ca.github.io/devopsTask-To-githubIssue/presentation.html)
 ## 🏗️ Architecture
 
 ```
