@@ -1,0 +1,41 @@
+name: ADO → GitHub Issue Sync
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEMPLATE – Copy this file into .github/workflows/ of your own repository.
+# Do NOT modify the 'uses:' line unless you want to pin a specific version.
+# Required secrets to create in your repository:
+#   ADO_PAT_TOKEN  – Azure DevOps PAT (Work Items: Read & Write)
+#   GH_PAT_TOKEN   – GitHub PAT Fine-grained (Issues: Read & Write)
+#   ADO_ORG_URL    – e.g. https://dev.azure.com/my-org
+#   ADO_PROJECT    – Azure DevOps project name
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry-run mode (no issues created, no ADO tags applied)'
+        type: boolean
+        default: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run KazoAdoSync
+        uses: Kazo-ca/devopsTask-To-githubIssue@v1
+        with:
+          config-path: '.github/ado-config.yml'
+          ado-org-url: ${{ secrets.ADO_ORG_URL }}
+          ado-project: ${{ secrets.ADO_PROJECT }}
+          gh-repo-owner: ${{ github.repository_owner }}
+          gh-repo-name: ${{ github.event.repository.name }}
+          ado-pat-token: ${{ secrets.ADO_PAT_TOKEN }}
+          gh-pat-token: ${{ secrets.GH_PAT_TOKEN }}
+          dry-run: ${{ inputs.dry-run || 'false' }}

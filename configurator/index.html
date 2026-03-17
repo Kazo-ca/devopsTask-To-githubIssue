@@ -87,10 +87,16 @@
             <div class="bg-white rounded-xl shadow p-6">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-xl font-semibold text-gray-800">📄 config.yml</h2>
-                    <button onclick="copyYaml()"
-                            class="text-sm bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
-                        Copier
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="copyYaml()"
+                                class="text-sm bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
+                            Copier
+                        </button>
+                        <button onclick="downloadYaml()"
+                                class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">
+                            Télécharger
+                        </button>
+                    </div>
                 </div>
                 <pre id="yamlOutput" class="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto whitespace-pre"></pre>
             </div>
@@ -106,6 +112,46 @@
         </div>
 
     </div>
+
+    <!-- ── Help / Secrets Section ──────────────────────────────────────── -->
+    <div class="mt-10 bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">🔐 Aide – Création des secrets GitHub</h2>
+        <p class="text-gray-600 mb-4">
+            KazoAdoSync requiert deux <strong>Personal Access Tokens (PAT)</strong> stockés comme secrets dans votre dépôt GitHub.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 class="font-semibold text-gray-800 mb-2">1. Créer <code class="bg-gray-200 px-1 rounded">ADO_PAT_TOKEN</code></h3>
+                <ol class="list-decimal list-inside space-y-1 text-sm text-gray-600">
+                    <li>Accédez à <a href="https://dev.azure.com" target="_blank" class="text-indigo-600 underline">Azure DevOps</a>.</li>
+                    <li>Cliquez sur votre avatar → <strong>Personal access tokens</strong>.</li>
+                    <li>Cliquez <strong>New Token</strong> et activez les scopes :<br>
+                        <code class="bg-gray-200 px-1 rounded text-xs">Work Items – Read &amp; Write</code>
+                    </li>
+                    <li>Copiez le token généré.</li>
+                    <li>Dans votre dépôt GitHub : <strong>Settings → Secrets and variables → Actions → New repository secret</strong>.</li>
+                    <li>Nom : <code class="bg-gray-200 px-1 rounded text-xs">ADO_PAT_TOKEN</code> — collez la valeur.</li>
+                </ol>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 class="font-semibold text-gray-800 mb-2">2. Créer <code class="bg-gray-200 px-1 rounded">GH_PAT_TOKEN</code></h3>
+                <ol class="list-decimal list-inside space-y-1 text-sm text-gray-600">
+                    <li>Accédez à <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" class="text-indigo-600 underline">GitHub → Settings → Developer settings → Fine-grained tokens</a>.</li>
+                    <li>Cliquez <strong>Generate new token</strong>.</li>
+                    <li>Activez les permissions :<br>
+                        <code class="bg-gray-200 px-1 rounded text-xs">Issues – Read &amp; Write</code>
+                    </li>
+                    <li>Copiez le token généré.</li>
+                    <li>Dans votre dépôt GitHub : <strong>Settings → Secrets and variables → Actions → New repository secret</strong>.</li>
+                    <li>Nom : <code class="bg-gray-200 px-1 rounded text-xs">GH_PAT_TOKEN</code> — collez la valeur.</li>
+                </ol>
+            </div>
+        </div>
+        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+            ⚠️ <strong>Sécurité :</strong> Ne partagez jamais vos tokens. Utilisez toujours les <em>GitHub Secrets</em> pour les stocker, jamais en clair dans vos fichiers de configuration.
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -178,6 +224,17 @@ Pour que votre travail soit lié à Azure DevOps, vous **DEVEZ** :
 function copyYaml() {
     const yaml = document.getElementById('yamlOutput').textContent;
     navigator.clipboard.writeText(yaml).then(() => alert('YAML copié !'));
+}
+
+function downloadYaml() {
+    const yaml = document.getElementById('yamlOutput').textContent;
+    const blob = new Blob([yaml], { type: 'text/yaml' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'config.yml';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 // Initialize on load
