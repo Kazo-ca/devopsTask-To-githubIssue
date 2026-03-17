@@ -1,0 +1,11 @@
+sync_settings:
+  watch_tag: "AI-Ready"
+  processed_tag: "IssueCreated"
+  issue_prefix: "Devops IA Task"
+  default_source_field: "Notes"
+  github_label: "devops-task"
+  template_path: "template.md"
+
+env_mapping:
+  github_token_var: "GH_PAT_TOKEN"
+  devops_token_var: "ADO_PAT_TOKEN"
