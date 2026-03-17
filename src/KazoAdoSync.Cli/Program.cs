@@ -90,101 +90,108 @@ var htmlConverter = new ReverseMarkdown.Converter();
 
 foreach (var wiRef in queryResult.WorkItems)
 {
-    var workItem = await witClient.GetWorkItemAsync(
-        adoProject, wiRef.Id,
-        expand: WorkItemExpand.Relations);
-
-    if (workItem == null) continue;
-
-    var wiId   = workItem.Id!.Value;
-    var wiUrl  = $"{adoOrgUrl}/{adoProject}/_workitems/edit/{wiId}";
-
-    // ── 6a. Extract description (HTML → Markdown) ────────────────────
-    var descriptionHtml = GetFieldString(workItem, $"Microsoft.VSTS.TCM.{sourceField}")
-                       ?? GetFieldString(workItem, "System.Description")
-                       ?? string.Empty;
-    var wiDescription = htmlConverter.Convert(descriptionHtml);
-
-    // ── 6b. Fetch parent description if available ────────────────────
-    var parentDescription = string.Empty;
-    var parentRelation = workItem.Relations?
-        .FirstOrDefault(r => r.Rel == "System.LinkTypes.Hierarchy-Reverse");
-
-    if (parentRelation != null)
+    try
     {
-        var parentIdMatch = Regex.Match(parentRelation.Url, @"/(\d+)$");
-        if (parentIdMatch.Success && int.TryParse(parentIdMatch.Groups[1].Value, out var parentId))
+        var workItem = await witClient.GetWorkItemAsync(
+            adoProject, wiRef.Id,
+            expand: WorkItemExpand.Relations);
+
+        if (workItem == null) continue;
+
+        var wiId  = workItem.Id!.Value;
+        var wiUrl = $"{adoOrgUrl}/{adoProject}/_workitems/edit/{wiId}";
+
+        // ── 6a. Extract description (HTML → Markdown) ────────────────────
+        var descriptionHtml = GetFieldString(workItem, $"Microsoft.VSTS.TCM.{sourceField}")
+                           ?? GetFieldString(workItem, "System.Description")
+                           ?? string.Empty;
+        var wiDescription = htmlConverter.Convert(descriptionHtml);
+
+        // ── 6b. Fetch parent description if available ────────────────────
+        var parentDescription = string.Empty;
+        var parentRelation = workItem.Relations?
+            .FirstOrDefault(r => r.Rel == "System.LinkTypes.Hierarchy-Reverse");
+
+        if (parentRelation != null)
         {
-            var parentWi = await witClient.GetWorkItemAsync(adoProject, parentId);
-            var parentHtml = GetFieldString(parentWi, "System.Description") ?? string.Empty;
-            parentDescription = htmlConverter.Convert(parentHtml);
+            var parentIdMatch = Regex.Match(parentRelation.Url, @"/(\d+)$");
+            if (parentIdMatch.Success && int.TryParse(parentIdMatch.Groups[1].Value, out var parentId))
+            {
+                var parentWi = await witClient.GetWorkItemAsync(adoProject, parentId);
+                var parentHtml = GetFieldString(parentWi, "System.Description") ?? string.Empty;
+                parentDescription = htmlConverter.Convert(parentHtml);
+            }
         }
-    }
 
-    // ── 6c. Build the issue title (strict AB# prefix) ────────────────
-    var issueTitle = $"AB#{wiId} – {config.SyncSettings.IssuePrefix}";
-    var wiTitleField = GetFieldString(workItem, "System.Title");
-    if (!string.IsNullOrWhiteSpace(wiTitleField))
-    {
-        issueTitle = $"AB#{wiId} – {wiTitleField}";
-    }
-
-    // ── 6d. Replace template placeholders ────────────────────────────
-    var issueBody = ReplacePlaceholders(templateBody, wiId, wiUrl, wiDescription, parentDescription);
-
-    // ── 6e. Check for duplicates on GitHub ───────────────────────────
-    var existingIssues = await ghClient.Search.SearchIssues(
-        new SearchIssuesRequest($"AB#{wiId} in:title repo:{ghOwner}/{ghRepo}")
+        // ── 6c. Build the issue title (strict AB# prefix) ────────────────
+        var issueTitle = $"AB#{wiId} – {config.SyncSettings.IssuePrefix}";
+        var wiTitleField = GetFieldString(workItem, "System.Title");
+        if (!string.IsNullOrWhiteSpace(wiTitleField))
         {
-            Type = IssueTypeQualifier.Issue
-        });
-
-    if (existingIssues.TotalCount > 0)
-    {
-        Console.WriteLine($"  ⏭  Skipping WI {wiId} – GitHub issue already exists.");
-        continue;
-    }
-
-    // ── 6f. Create the GitHub issue ──────────────────────────────────
-    var newIssue = new NewIssue(issueTitle) { Body = issueBody };
-    if (!string.IsNullOrWhiteSpace(config.SyncSettings.GithubLabel))
-    {
-        newIssue.Labels.Add(config.SyncSettings.GithubLabel);
-    }
-
-    if (dryRun)
-    {
-        Console.WriteLine($"  🔍 [DRY-RUN] Would create GitHub issue for WI {wiId}: \"{issueTitle}\"");
-        continue;
-    }
-
-    var createdIssue = await ghClient.Issue.Create(ghOwner, ghRepo, newIssue);
-    Console.WriteLine($"  ✅ Created GitHub issue #{createdIssue.Number} for WI {wiId}");
-
-    // ── 6g. Tag work item as processed in ADO ────────────────────────
-    var currentTags = GetFieldString(workItem, "System.Tags") ?? string.Empty;
-    var updatedTags = string.IsNullOrWhiteSpace(currentTags)
-        ? processedTag
-        : $"{currentTags}; {processedTag}";
-
-    var patchDocument = new Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument
-    {
-        new()
-        {
-            Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Replace,
-            Path      = "/fields/System.Tags",
-            Value     = updatedTags
+            issueTitle = $"AB#{wiId} – {wiTitleField}";
         }
-    };
-    await witClient.UpdateWorkItemAsync(patchDocument, wiId);
 
-    // ── 6h. Add a comment to the ADO work item ──────────────────────
-    var commentBody = $"GitHub Issue created: {createdIssue.HtmlUrl}";
-    await witClient.AddCommentAsync(
-        new CommentCreate { Text = commentBody },
-        adoProject, wiId);
+        // ── 6d. Replace template placeholders ────────────────────────────
+        var issueBody = ReplacePlaceholders(templateBody, wiId, wiUrl, wiDescription, parentDescription);
 
-    Console.WriteLine($"  🔗 Tagged WI {wiId} with '{processedTag}' and added comment.");
+        // ── 6e. Check for duplicates on GitHub ───────────────────────────
+        var existingIssues = await ghClient.Search.SearchIssues(
+            new SearchIssuesRequest($"AB#{wiId} in:title repo:{ghOwner}/{ghRepo}")
+            {
+                Type = IssueTypeQualifier.Issue
+            });
+
+        if (existingIssues.TotalCount > 0)
+        {
+            Console.WriteLine($"  ⏭  Skipping WI {wiId} – GitHub issue already exists.");
+            continue;
+        }
+
+        // ── 6f. Create the GitHub issue ──────────────────────────────────
+        var newIssue = new NewIssue(issueTitle) { Body = issueBody };
+        if (!string.IsNullOrWhiteSpace(config.SyncSettings.GithubLabel))
+        {
+            newIssue.Labels.Add(config.SyncSettings.GithubLabel);
+        }
+
+        if (dryRun)
+        {
+            Console.WriteLine($"  🔍 [DRY-RUN] Would create GitHub issue for WI {wiId}: \"{issueTitle}\"");
+            continue;
+        }
+
+        var createdIssue = await ghClient.Issue.Create(ghOwner, ghRepo, newIssue);
+        Console.WriteLine($"  ✅ Created GitHub issue #{createdIssue.Number} for WI {wiId}");
+
+        // ── 6g. Tag work item as processed in ADO ────────────────────────
+        var currentTags = GetFieldString(workItem, "System.Tags") ?? string.Empty;
+        var updatedTags = string.IsNullOrWhiteSpace(currentTags)
+            ? processedTag
+            : $"{currentTags}; {processedTag}";
+
+        var patchDocument = new Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument
+        {
+            new()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Replace,
+                Path      = "/fields/System.Tags",
+                Value     = updatedTags
+            }
+        };
+        await witClient.UpdateWorkItemAsync(patchDocument, wiId);
+
+        // ── 6h. Add a comment to the ADO work item ──────────────────────
+        var commentBody = $"GitHub Issue created: {createdIssue.HtmlUrl}";
+        await witClient.AddCommentAsync(
+            new CommentCreate { Text = commentBody },
+            adoProject, wiId);
+
+        Console.WriteLine($"  🔗 Tagged WI {wiId} with '{processedTag}' and added comment.");
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"  ❌ Error processing WI {wiRef.Id}: {ex.Message}");
+    }
 }
 
 Console.WriteLine("Sync complete.");

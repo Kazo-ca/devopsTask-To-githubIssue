@@ -1,0 +1,31 @@
+name: ADO → GitHub Issue Sync
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry-run mode (no issues created, no ADO tags applied)'
+        type: boolean
+        default: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run KazoAdoSync
+        uses: ./
+        with:
+          config-path: 'config.yml'
+          ado-org-url: ${{ secrets.ADO_ORG_URL }}
+          ado-project: ${{ secrets.ADO_PROJECT }}
+          gh-repo-owner: ${{ github.repository_owner }}
+          gh-repo-name: ${{ github.event.repository.name }}
+          ado-pat-token: ${{ secrets.ADO_PAT_TOKEN }}
+          gh-pat-token: ${{ secrets.GH_PAT_TOKEN }}
+          dry-run: ${{ inputs.dry-run || 'false' }}
