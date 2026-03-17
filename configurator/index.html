@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazoAdoSync – Configurator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<div class="max-w-5xl mx-auto py-10 px-4">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">🔧 KazoAdoSync Configurator</h1>
+    <p class="text-gray-500 mb-8">Générez votre fichier <code>config.yml</code> et prévisualisez l'issue GitHub résultante.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- ── Left: Configuration Form ────────────────────────────── -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-5">
+            <h2 class="text-xl font-semibold text-gray-800">Paramètres de synchronisation</h2>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Watch Tag</label>
+                <input id="watchTag" type="text" value="AI-Ready"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Processed Tag</label>
+                <input id="processedTag" type="text" value="IssueCreated"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Issue Prefix</label>
+                <input id="issuePrefix" type="text" value="Devops IA Task"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Default Source Field</label>
+                <input id="sourceField" type="text" value="Notes"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">GitHub Label</label>
+                <input id="ghLabel" type="text" value="devops-task"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Template Path</label>
+                <input id="templatePath" type="text" value="template.md"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+
+            <hr class="my-2">
+            <h2 class="text-xl font-semibold text-gray-800">Mapping des variables d'environnement</h2>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">GitHub Token Var</label>
+                <input id="ghTokenVar" type="text" value="GH_PAT_TOKEN"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">DevOps Token Var</label>
+                <input id="adoTokenVar" type="text" value="ADO_PAT_TOKEN"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+
+            <hr class="my-2">
+            <h2 class="text-xl font-semibold text-gray-800">Preview – Work Item ID</h2>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Exemple WI ID (pour la preview)</label>
+                <input id="previewWiId" type="number" value="123"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border p-2"
+                       oninput="generate()">
+            </div>
+        </div>
+
+        <!-- ── Right: Generated YAML + Issue Preview ───────────────── -->
+        <div class="space-y-6">
+            <!-- YAML output -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xl font-semibold text-gray-800">📄 config.yml</h2>
+                    <button onclick="copyYaml()"
+                            class="text-sm bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
+                        Copier
+                    </button>
+                </div>
+                <pre id="yamlOutput" class="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto whitespace-pre"></pre>
+            </div>
+
+            <!-- Issue Preview -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">👁️ Prévisualisation de l'Issue GitHub</h2>
+                <div class="border rounded-lg p-4">
+                    <h3 id="previewTitle" class="text-lg font-bold text-gray-900 mb-3"></h3>
+                    <div id="previewBody" class="prose prose-sm max-w-none text-gray-700"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function val(id) { return document.getElementById(id).value; }
+
+function generate() {
+    const wiId = val('previewWiId') || '123';
+    const wiUrl = `https://dev.azure.com/org/project/_workitems/edit/${wiId}`;
+
+    // ── Generate YAML ──────────────────────────────────────────────
+    const yaml = [
+        'sync_settings:',
+        `  watch_tag: "${val('watchTag')}"`,
+        `  processed_tag: "${val('processedTag')}"`,
+        `  issue_prefix: "${val('issuePrefix')}"`,
+        `  default_source_field: "${val('sourceField')}"`,
+        `  github_label: "${val('ghLabel')}"`,
+        `  template_path: "${val('templatePath')}"`,
+        '',
+        'env_mapping:',
+        `  github_token_var: "${val('ghTokenVar')}"`,
+        `  devops_token_var: "${val('adoTokenVar')}"`,
+    ].join('\n');
+
+    document.getElementById('yamlOutput').textContent = yaml;
+
+    // ── Generate Issue Preview ─────────────────────────────────────
+    const title = `AB#${wiId} – Example Task Title`;
+    document.getElementById('previewTitle').textContent = title;
+
+    const body = `
+### 🤖 Task Automatisée : AB#${wiId}
+> **Origine :** [WorkItem ${wiId}](${wiUrl})
+
+#### 📝 Description de la tâche
+_Description du work item convertie en Markdown._
+
+---
+
+### 📋 Contexte Parent (User Story)
+> _Description de la User Story parente._
+
+---
+
+### ⚠️ RÈGLES DE TRAÇABILITÉ (OBLIGATOIRE)
+Pour que votre travail soit lié à Azure DevOps, vous **DEVEZ** :
+1. **Branche :** Créer une branche incluant le tag \`AB#${wiId}\`.
+2. **Commits :** Chaque commit doit mentionner \`AB#${wiId}\`.
+3. **Pull Request :** Le titre de la PR doit contenir \`AB#${wiId}\`.
+
+> ⚠️ **CAUTION** — Votre scope est limité à la **Task** décrite ci-dessus. Ne modifiez rien d'autre.
+    `.trim();
+
+    // Simple Markdown→HTML (for preview purposes)
+    const html = body
+        .replace(/^### (.+)$/gm, '<h3 class="font-bold text-base mt-4 mb-1">$1</h3>')
+        .replace(/^#### (.+)$/gm, '<h4 class="font-semibold text-sm mt-3 mb-1">$1</h4>')
+        .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-gray-300 pl-3 italic text-gray-600 my-1">$1</blockquote>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/_(.+?)_/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-1 rounded text-sm">$1</code>')
+        .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal">$1</li>')
+        .replace(/^---$/gm, '<hr class="my-3">')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-indigo-600 underline" target="_blank">$1</a>')
+        .replace(/\n/g, '<br>');
+
+    document.getElementById('previewBody').innerHTML = html;
+}
+
+function copyYaml() {
+    const yaml = document.getElementById('yamlOutput').textContent;
+    navigator.clipboard.writeText(yaml).then(() => alert('YAML copié !'));
+}
+
+// Initialize on load
+generate();
+</script>
+
+</body>
+</html>
