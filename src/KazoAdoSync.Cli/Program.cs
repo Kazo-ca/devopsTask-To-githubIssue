@@ -14,7 +14,7 @@ using YamlDotNet.Serialization.NamingConventions;
 // ---------------------------------------------------------------------------
 
 var dryRun     = args.Contains("--dry-run");
-var configPath = args.FirstOrDefault(a => !a.StartsWith("--")) ?? "config.yml";
+var configPath = args.FirstOrDefault(a => !a.StartsWith('-')) ?? "config.yml";
 
 if (dryRun)
     Console.WriteLine("🔍 DRY-RUN mode – no issues will be created and no ADO work items will be modified.");

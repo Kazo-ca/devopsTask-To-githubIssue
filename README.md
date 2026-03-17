@@ -26,10 +26,10 @@ Outil d'automatisation qui synchronise les **WorkItems** (Type: Task) d'Azure De
 
 ## ⚡ Utilisation dans votre dépôt (méthode recommandée)
 
-Ajoutez ce workflow dans votre dépôt pour activer la sync automatique :
+Téléchargez le fichier [`examples/ado-sync.yml`](examples/ado-sync.yml) (également disponible dans chaque [release](../../releases/latest)) et placez-le dans `.github/workflows/` de votre dépôt.
 
 ```yaml
-# .github/workflows/ado-sync.yml
+# .github/workflows/ado-sync.yml  ← copié depuis examples/ado-sync.yml
 name: ADO → GitHub Issue Sync
 on:
   schedule:

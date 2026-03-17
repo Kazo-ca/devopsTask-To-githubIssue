@@ -7,9 +7,9 @@ Ce document trace l'état d'avancement du projet et les tâches restantes avant 
 ## ✅ Ce qui est en place
 
 ### Infrastructure & Automation
-- [x] **Workflow de sync planifié** (`.github/workflows/ado-sync.yml`) – cron toutes les 10 min + déclenchement manuel avec option `dry-run`
+- [x] **Template de workflow consommateur** (`examples/ado-sync.yml`) – cron toutes les 10 min + déclenchement manuel avec option `dry-run`; référence `Kazo-ca/devopsTask-To-githubIssue@v1` et est inclus dans chaque release
 - [x] **Déploiement GitHub Pages** (`.github/workflows/deploy-configurator.yml`) – déploie `/configurator` automatiquement sur push vers `main`
-- [x] **Publication de release** (`.github/workflows/publish-action.yml`) – compile et publie les binaires linux/win sur push d'un tag `v*.*.*`
+- [x] **Publication de release** (`.github/workflows/publish-action.yml`) – compile et publie les binaires linux/win sur push d'un tag `v*.*.*` ; inclut `ado-sync.yml`, `action.yml`, `template.md`, `config.yml`
 
 ### CLI (Program.cs)
 - [x] Lecture de la configuration YAML (`config.yml`)

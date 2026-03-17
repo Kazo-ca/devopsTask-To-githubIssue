@@ -53,6 +53,7 @@ jobs:
           cp action.yml dist/
           cp template.md dist/
           cp config.yml dist/
+          cp examples/ado-sync.yml dist/
 
       - name: Package artifacts
         run: |
@@ -79,4 +80,5 @@ jobs:
             KazoAdoSync-win-x64.zip \
             dist/action.yml \
             dist/template.md \
-            dist/config.yml
+            dist/config.yml \
+            dist/ado-sync.yml
