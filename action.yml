@@ -1,0 +1,63 @@
+name: 'KazoAdoSync – ADO to GitHub Issue Sync'
+description: 'Synchronizes Azure DevOps Tasks to GitHub Issues with full AB# traceability.'
+author: 'Kazo-ca'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'blue'
+
+inputs:
+  config-path:
+    description: 'Path to the config.yml file (relative to the caller repository root).'
+    required: false
+    default: '.github/ado-config.yml'
+  ado-org-url:
+    description: 'Azure DevOps organization URL (e.g. https://dev.azure.com/my-org).'
+    required: true
+  ado-project:
+    description: 'Azure DevOps project name.'
+    required: true
+  gh-repo-owner:
+    description: 'GitHub repository owner (user or organization).'
+    required: true
+  gh-repo-name:
+    description: 'GitHub repository name.'
+    required: true
+  ado-pat-token:
+    description: 'Azure DevOps Personal Access Token (read/write WorkItems).'
+    required: true
+  gh-pat-token:
+    description: 'GitHub Personal Access Token (write Issues).'
+    required: true
+  dry-run:
+    description: 'When set to "true", runs without creating issues or modifying ADO work items.'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.x'
+
+    - name: Restore dependencies
+      shell: bash
+      run: dotnet restore "${{ github.action_path }}/src/KazoAdoSync.Cli/KazoAdoSync.Cli.csproj"
+
+    - name: Run KazoAdoSync
+      shell: bash
+      env:
+        ADO_PAT_TOKEN: ${{ inputs.ado-pat-token }}
+        GH_PAT_TOKEN: ${{ inputs.gh-pat-token }}
+        ADO_ORG_URL: ${{ inputs.ado-org-url }}
+        ADO_PROJECT: ${{ inputs.ado-project }}
+        GH_REPO_OWNER: ${{ inputs.gh-repo-owner }}
+        GH_REPO_NAME: ${{ inputs.gh-repo-name }}
+      run: |
+        ARGS=("${{ inputs.config-path }}")
+        if [ "${{ inputs.dry-run }}" = "true" ]; then
+          ARGS+=("--dry-run")
+        fi
+        dotnet run --project "${{ github.action_path }}/src/KazoAdoSync.Cli" -- "${ARGS[@]}"

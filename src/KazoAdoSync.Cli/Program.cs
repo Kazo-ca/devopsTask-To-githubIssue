@@ -13,7 +13,12 @@ using YamlDotNet.Serialization.NamingConventions;
 // Synchronizes Azure DevOps Tasks to GitHub Issues with strict AB# traceability.
 // ---------------------------------------------------------------------------
 
-var configPath = args.Length > 0 ? args[0] : "config.yml";
+var dryRun     = args.Contains("--dry-run");
+var configPath = args.FirstOrDefault(a => !a.StartsWith("--")) ?? "config.yml";
+
+if (dryRun)
+    Console.WriteLine("🔍 DRY-RUN mode – no issues will be created and no ADO work items will be modified.");
+
 if (!File.Exists(configPath))
 {
     Console.Error.WriteLine($"Configuration file not found: {configPath}");
@@ -145,6 +150,12 @@ foreach (var wiRef in queryResult.WorkItems)
     if (!string.IsNullOrWhiteSpace(config.SyncSettings.GithubLabel))
     {
         newIssue.Labels.Add(config.SyncSettings.GithubLabel);
+    }
+
+    if (dryRun)
+    {
+        Console.WriteLine($"  🔍 [DRY-RUN] Would create GitHub issue for WI {wiId}: \"{issueTitle}\"");
+        continue;
     }
 
     var createdIssue = await ghClient.Issue.Create(ghOwner, ghRepo, newIssue);

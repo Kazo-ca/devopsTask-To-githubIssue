@@ -1,0 +1,82 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/KazoAdoSync.Cli/KazoAdoSync.Cli.csproj
+
+      - name: Publish self-contained executable (linux-x64)
+        run: |
+          dotnet publish src/KazoAdoSync.Cli/KazoAdoSync.Cli.csproj \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=true \
+            --output dist/linux-x64
+
+      - name: Publish self-contained executable (win-x64)
+        run: |
+          dotnet publish src/KazoAdoSync.Cli/KazoAdoSync.Cli.csproj \
+            --configuration Release \
+            --runtime win-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=true \
+            --output dist/win-x64
+
+      - name: Copy distribution files
+        run: |
+          cp action.yml dist/
+          cp template.md dist/
+          cp config.yml dist/
+
+      - name: Package artifacts
+        run: |
+          tar -czf KazoAdoSync-linux-x64.tar.gz -C dist/linux-x64 KazoAdoSync.Cli
+          zip -j KazoAdoSync-win-x64.zip dist/win-x64/KazoAdoSync.Cli.exe
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.tag.outputs.value }}" \
+            --title "Release ${{ steps.tag.outputs.value }}" \
+            --generate-notes \
+            KazoAdoSync-linux-x64.tar.gz \
+            KazoAdoSync-win-x64.zip \
+            dist/action.yml \
+            dist/template.md \
+            dist/config.yml
