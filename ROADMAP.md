@@ -57,7 +57,13 @@ Ce document trace l'état d'avancement du projet et les tâches restantes avant 
   - `ADO_ORG_URL` – URL de l'organisation ADO
   - `ADO_PROJECT` – Nom du projet ADO
 - [ ] **Créer le label GitHub** `devops-task` dans le dépôt cible (ou modifier `github_label` dans `config.yml`). Si le label n'existe pas, la création d'issue échoue.
-- [ ] **Publier la première release** en créant un tag `v1.0.0` pour que la `action.yml` soit disponible via `@v1`.
+- [ ] **Publier la première release** en créant le tag `v1.0.0` sur le commit du PR (`e6fbb35`), soit depuis votre machine locale :
+  ```bash
+  git fetch origin
+  git tag v1.0.0 e6fbb35fd15dc40ec5bafa72015ecafb715cc2e4
+  git push origin v1.0.0
+  ```
+  soit depuis l'interface GitHub : **Releases → Create new release → tag `v1.0.0` → target `copilot/fix-ab-configurer-githubagent`**. Le workflow `publish-action.yml` se déclenchera automatiquement et créera la release avec tous les artefacts.
 
 ### 🟡 Priorité Moyenne
 
